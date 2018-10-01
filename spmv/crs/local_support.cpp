@@ -21,14 +21,12 @@ int32_t[N+1]: the start of each row of nonzeros
 TYPE[N]: the dense vector
 */
 
-void input_to_data(int fd, void *vdata) {
+void input_to_data(char *p, void *vdata) {
   struct bench_args_t *data = (struct bench_args_t *)vdata;
-  char *p, *s;
+  char *s;
   // Zero-out everything.
   memset(vdata,0,sizeof(struct bench_args_t));
   // Load input string
-  p = readfile(fd);
-
   s = find_section_start(p,1);
   STAC(parse_,TYPE,_array)(s, data->val, NNZ);
 
@@ -40,7 +38,6 @@ void input_to_data(int fd, void *vdata) {
 
   s = find_section_start(p,4);
   STAC(parse_,TYPE,_array)(s, data->vec, N_MAT);
-  free(p);
 }
 
 void data_to_input(int fd, void *vdata) {

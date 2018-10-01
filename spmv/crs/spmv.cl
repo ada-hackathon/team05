@@ -65,7 +65,7 @@ static void compute_spmv(__global TYPE val[NNZ], __global int cols[NNZ], __globa
     int i, j;
     TYPE sum, Si;
 
-    int id = get_group_id(0); //id = row;
+    int id = get_global_id(0); //id = row;
     //Loop is distributed across kernels spmv_1 : for(i = 0; i < N_MAT; i++){
     sum = 0; Si = 0;
     int tmp_begin = rowDelimiters[id];
@@ -87,7 +87,6 @@ static void compute_spmv(__global TYPE val[NNZ], __global int cols[NNZ], __globa
         size (input)  --> Size of Vector in Integer
    */
 __kernel 
-__attribute__ ((reqd_work_group_size(1, 1, 1)))
 void spmv(__global TYPE val[NNZ], __global int cols[NNZ], __global int rowDelimiters[N_MAT+1], __global TYPE vec[N_MAT], __global TYPE out[N_MAT])
 {
     // float buffer_in1[BUFFER_SIZE];

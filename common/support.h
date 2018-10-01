@@ -36,7 +36,7 @@ int write_section_header(int fd);
 
 ///// Per-benchmark files
 void run_benchmark( void *vargs );
-void input_to_data(int fd, void *vdata);
+void input_to_data(char * fd, void *vdata);
 void data_to_input(int fd, void *vdata);
 void output_to_data(int fd, void *vdata);
 void data_to_output(int fd, void *vdata);
