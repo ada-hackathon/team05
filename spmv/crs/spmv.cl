@@ -59,41 +59,23 @@ Description:
 #define TYPE double
 #define BUFFER_SIZE 4096
 
-//Includes 
-// Read Data from Global Memory and write into buffer_in
-static void read_input(__global float *in, float * buffer_in,
-        int size)
-{
-    for (int i = 0 ; i < size ; i++){
-        buffer_in[i] =  in[i];
-    }
-}
-
 // Read Input data from buffer_in and write the result into buffer_out
 static void compute_spmv(__global TYPE val[NNZ], __global int cols[NNZ], __global int rowDelimiters[N_MAT+1], __global TYPE vec[N_MAT], __global TYPE out[N_MAT])
 {
     int i, j;
     TYPE sum, Si;
 
-    spmv_1 : for(i = 0; i < N_MAT; i++){
-        sum = 0; Si = 0;
-        int tmp_begin = rowDelimiters[i];
-        int tmp_end = rowDelimiters[i+1];
-        spmv_2 : for (j = tmp_begin; j < tmp_end; j++){
-            Si = val[j] * vec[cols[j]];
-            sum = sum + Si;
-        }
-        out[i] = sum;
+    int id = get_group_id(0); //id = row;
+    //Loop is distributed across kernels spmv_1 : for(i = 0; i < N_MAT; i++){
+    sum = 0; Si = 0;
+    int tmp_begin = rowDelimiters[id];
+    int tmp_end = rowDelimiters[id+1];
+    for (j = tmp_begin; j < tmp_end; j++){
+        Si = val[j] * vec[cols[j]];
+        sum = sum + Si;
     }
-}
-
-// Read result from buffer_out and write the result to Global Memory
-static void write_result(__global float *out, float* buffer_out,
-        int size)
-{
-    for (int i = 0 ; i < size ; i++){
-        out[i] = buffer_out[i];
-    }
+    out[id] = sum;
+    //}
 }
 
 /*

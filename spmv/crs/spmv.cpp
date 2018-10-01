@@ -51,7 +51,7 @@ void spmv(TYPE val[NNZ], int32_t cols[NNZ], int32_t rowDelimiters[N_MAT+1], TYPE
     krnl_spmv.setArg(narg++,buffer_out);
 
     //Launch the Kernel
-    q.enqueueNDRangeKernel(krnl_spmv,cl::NullRange,cl::NDRange(1),cl::NullRange);
+    q.enqueueNDRangeKernel(krnl_spmv,cl::NullRange,cl::NDRange(N_MAT),cl::NullRange);
 
     //Copy Result from Device Global Memory to Host Local Memory
     q.enqueueReadBuffer(buffer_out, CL_TRUE, 0, N_MAT * sizeof(TYPE), out);
