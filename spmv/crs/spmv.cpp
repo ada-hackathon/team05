@@ -4,8 +4,9 @@ http://www.cs.berkeley.edu/~mhoemmen/matrix-seminar/slides/UCB_sparse_tutorial_1
 */
 
 #include "spmv.h"
+#include "xcl2.hpp"
 
-void spmv(TYPE val[NNZ], int32_t cols[NNZ], int32_t rowDelimiters[N+1], TYPE vec[N], TYPE out[N]){
+void spmv(TYPE val[NNZ], int32_t cols[NNZ], int32_t rowDelimiters[N_MAT+1], TYPE vec[N_MAT], TYPE out[N_MAT]){
     //OPENCL HOST CODE AREA START
     std::vector<cl::Device> devices = xcl::get_xil_devices();
     cl::Device device = devices[0];
@@ -27,21 +28,20 @@ void spmv(TYPE val[NNZ], int32_t cols[NNZ], int32_t rowDelimiters[N+1], TYPE vec
     cl::Buffer buffer_cols (context, CL_MEM_READ_ONLY,
                         (NNZ) * sizeof(int32_t));
     cl::Buffer buffer_rowDelimiters (context, CL_MEM_READ_ONLY,
-                           (N+1) * sizeof(int32_t));
+                           (N_MAT+1) * sizeof(int32_t));
     cl::Buffer buffer_vec (context, CL_MEM_READ_ONLY,
-                           (N) * sizeof(TYPE));
+                           (N_MAT) * sizeof(TYPE));
     cl::Buffer buffer_out(context, CL_MEM_WRITE_ONLY, 
-                            N * sizeof(TYPE));
+    		N_MAT * sizeof(TYPE));
 
     //Copy input data to device global memory
     q.enqueueWriteBuffer(buffer_val, CL_TRUE, 0, NNZ * sizeof(TYPE), val);
     q.enqueueWriteBuffer(buffer_cols, CL_TRUE, 0, NNZ * sizeof(int32_t), cols);
-    q.enqueueWriteBuffer(buffer_rowDelimiters, CL_TRUE, 0,  (N+1) * sizeof(int32_t), rowDelimiters);
-    q.enqueueWriteBuffer(buffer_vec, CL_TRUE, 0,  (N) * sizeof(TYPE), vec);
+    q.enqueueWriteBuffer(buffer_rowDelimiters, CL_TRUE, 0,  (N_MAT+1) * sizeof(int32_t), rowDelimiters);
+    q.enqueueWriteBuffer(buffer_vec, CL_TRUE, 0,  (N_MAT) * sizeof(TYPE), vec);
 
    // int inc = INCR_VALUE;
-    int size = DATA_SIZE;
-    int cols = COLS;
+
     //Set the Kernel Arguments
     int narg=0;
     krnl_spmv.setArg(narg++,buffer_val);
@@ -51,10 +51,10 @@ void spmv(TYPE val[NNZ], int32_t cols[NNZ], int32_t rowDelimiters[N+1], TYPE vec
     krnl_spmv.setArg(narg++,buffer_out);
 
     //Launch the Kernel
-    q.enqueueNDRangeKernel(krnl_spmv,cl::NullRange,cl::NDRange(cols,size/cols),cl::NullRange);
+    q.enqueueNDRangeKernel(krnl_spmv,cl::NullRange,cl::NDRange(1),cl::NullRange);
 
     //Copy Result from Device Global Memory to Host Local Memory
-    q.enqueueReadBuffer(out, CL_TRUE, 0, N * sizeof(TYPE), out);
+    q.enqueueReadBuffer(buffer_out, CL_TRUE, 0, N_MAT * sizeof(TYPE), out);
 
     q.finish();
 }

@@ -53,7 +53,10 @@ Description:
                     | write_result |       
                     |______________|-----> Output result to Global Memory
 *******************************************************************************/
-#include "spmv.h"
+#define NNZ 1666
+#define N_MAT 494
+
+#define TYPE double
 #define BUFFER_SIZE 4096
 
 //Includes 
@@ -67,12 +70,12 @@ static void read_input(__global float *in, float * buffer_in,
 }
 
 // Read Input data from buffer_in and write the result into buffer_out
-static void compute_spmv(TYPE val[NNZ], int32_t cols[NNZ], int32_t rowDelimiters[N+1], TYPE vec[N], TYPE out[N]) 
+static void compute_spmv(__global TYPE val[NNZ], __global int cols[NNZ], __global int rowDelimiters[N_MAT+1], __global TYPE vec[N_MAT], __global TYPE out[N_MAT])
 {
     int i, j;
     TYPE sum, Si;
 
-    spmv_1 : for(i = 0; i < N; i++){
+    spmv_1 : for(i = 0; i < N_MAT; i++){
         sum = 0; Si = 0;
         int tmp_begin = rowDelimiters[i];
         int tmp_end = rowDelimiters[i+1];
@@ -103,7 +106,7 @@ static void write_result(__global float *out, float* buffer_out,
    */
 __kernel 
 __attribute__ ((reqd_work_group_size(1, 1, 1)))
-void spmv(TYPE val[NNZ], int32_t cols[NNZ], int32_t rowDelimiters[N+1], TYPE vec[N], TYPE out[N])
+void spmv(__global TYPE val[NNZ], __global int cols[NNZ], __global int rowDelimiters[N_MAT+1], __global TYPE vec[N_MAT], __global TYPE out[N_MAT])
 {
     // float buffer_in1[BUFFER_SIZE];
     // float buffer_in2[BUFFER_SIZE];
@@ -111,6 +114,6 @@ void spmv(TYPE val[NNZ], int32_t cols[NNZ], int32_t rowDelimiters[N+1], TYPE vec
 
     // read_input(in1,buffer_in1,size);
     // read_input(in2,buffer_in2,size);
-    compute_spmv(val, cols rowDelimiters, vec, out);
+    compute_spmv(val, cols, rowDelimiters, vec, out);
     // write_result(out,buffer_out,size);
 }
